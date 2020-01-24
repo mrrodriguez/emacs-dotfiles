@@ -350,6 +350,8 @@ you should place your code here."
   (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
 
   ;; cider
+  (setq cider-show-error-buffer nil)
+  (setq cider-auto-select-error-buffer nil)
   ;;(setq nrepl-hide-special-buffers t)
   ;;(setq nrepl-buffer-name-show-port t)
 
