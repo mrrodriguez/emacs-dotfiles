@@ -31,6 +31,7 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     spacemacs-ui-visual
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
@@ -67,7 +68,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(easy-kill)
+   dotspacemacs-additional-packages '(easy-kill paredit)
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -139,7 +140,8 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(zenburn
+   dotspacemacs-themes '(afternoon
+                         zenburn
                          spacemacs-dark
                          spacemacs-light)
    ;; If non nil the cursor color matches the state color in GUI Emacs.
@@ -336,6 +338,21 @@ you should place your code here."
     (other-window -1))
   (define-key evil-emacs-state-map (kbd "C-,") 'back-other-window)
 
+  ;;Paredit
+  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+  (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+  (add-hook 'ielm-mode-hook #'enable-paredit-mode)
+  (add-hook 'lisp-mode-hook #'enable-paredit-mode)
+  (add-hook 'clojure-mode-hook #'enable-paredit-mode)
+  (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+  (add-hook 'scheme-mode-hook #'enable-paredit-mode)
+  (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
+
+  ;; cider
+  ;;(setq nrepl-hide-special-buffers t)
+  ;;(setq nrepl-buffer-name-show-port t)
+
   ;; easy-kill
   (define-key evil-emacs-state-map [remap kill-ring-save] 'easy-kill)
   (define-key evil-emacs-state-map [remap mark-sexp] 'easy-mark)
@@ -346,6 +363,14 @@ you should place your code here."
                     (interactive)
                     (just-one-space -1)
                     (delete-horizontal-space)))
+
+
+  ;; Set the fill area a little wider than the default
+  (setq-default fill-column 100)
+
+  ;; This can be useful to turn on the `fill-column-indicator' in all newly opened buffers, but it
+  ;; can get confusing with horizontal screen split.
+  ;;(add-hook 'after-change-major-mode-hook 'fci-mode)
 
   ;; Display Visited File's Path in the Frame Title
   (setq frame-title-format
