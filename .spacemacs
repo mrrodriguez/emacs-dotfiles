@@ -355,6 +355,20 @@ you should place your code here."
   ;;(setq nrepl-hide-special-buffers t)
   ;;(setq nrepl-buffer-name-show-port t)
 
+  ;; Clojure
+  (defun clj-utils-sc-api-defsc (ep cp)
+    "(sc.api/defsc [ep cp])"
+    (interactive "nep:\nncp (use positive num): ")
+    (let
+        ((form
+          (format "(sc.api/defsc [%s -%s])" ep cp)))
+      (message
+       (format "eval: %s" form))
+      (cider-interactive-eval form
+                              (cider-eval-print-handler
+                               (cider-current-repl)))))
+  (define-key evil-emacs-state-map (kbd "C-x scd") 'clj-utils-sc-api-defsc)
+
   ;; easy-kill
   (define-key evil-emacs-state-map [remap kill-ring-save] 'easy-kill)
   (define-key evil-emacs-state-map [remap mark-sexp] 'easy-mark)
@@ -381,8 +395,8 @@ you should place your code here."
                    "%b"))))
 
   ;; osx
-  (setq mac-option-key-is-meta t)
-  (setq mac-option-modifier 'meta)
+  (setq mac-option-key-is-control t)
+  (setq mac-option-modifier 'control)
   (setq mac-command-key-is-meta t)
   (setq mac-command-modifier 'meta)
 
@@ -408,21 +422,7 @@ you should place your code here."
  '(package-selected-packages
    (quote
     (easy-kill xterm-color shell-pop multi-term eshell-z eshell-prompt-extras esh-help yaml-mode web-mode tagedit sql-indent slim-mode scss-mode sass-mode pug-mode insert-shebang helm-css-scss haml-mode fish-mode emmet-mode eclim web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc coffee-mode zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue parseedn clojure-mode parseclj a smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup launchctl htmlize helm-gitignore gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md flyspell-correct-helm flyspell-correct evil-magit magit git-commit with-editor transient auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra lv hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async)))
- '(safe-local-variable-values
-   (quote
-    ((eval defun scd
-           (ep cp)
-           "(sc.api/defsc [ep cp])"
-           (interactive "nep: 
-ncp (use positive num): ")
-           (let
-               ((form
-                 (format "(sc.api/defsc [%s -%s])" ep cp)))
-             (message
-              (format "eval: %s" form))
-             (cider-interactive-eval form
-                                     (cider-eval-print-handler
-                                      (cider-current-repl)))))))))
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
