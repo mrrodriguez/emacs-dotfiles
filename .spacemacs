@@ -203,7 +203,10 @@ It should only modify the values of Spacemacs settings."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(afternoon
+   dotspacemacs-themes '(deeper-blue
+                         tsdh-dark
+                         wombat
+                         afternoon
                          colorsarenice-lighty
                          solarized-dark
                          zenburn
@@ -493,6 +496,9 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
 
+  ;; spacemacs
+  (spacemacs/toggle-highlight-current-line-globally-off)
+
   ;; elisp/emacs infra
   (setq find-function-C-source-directory "/Users/mikerod/Projects/emacs-plus-basis/src")
 
@@ -505,7 +511,7 @@ before packages are loaded."
     (other-window -1))
   (define-key evil-emacs-state-map (kbd "C-,") 'back-other-window)
 
-  ;;Paredit
+  ;; Paredit
   (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
   (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode)
   (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
@@ -515,6 +521,12 @@ before packages are loaded."
   (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
   (add-hook 'scheme-mode-hook #'enable-paredit-mode)
   (add-hook 'cider-repl-mode-hook #'enable-paredit-mode)
+
+  ;; js
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . javascript-mode))
+
+  ;; xml
+  (add-to-list 'auto-mode-alist '("\\.xslt\\'" . xml-mode))
 
   ;; cider
   (setq cider-show-error-buffer nil)
