@@ -242,6 +242,8 @@ It should only modify the values of Spacemacs settings."
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(afternoon
+                         modus-operandi
+                         gruvbox
                          deeper-blue
                          doom-zenburn
                          tsdh-dark
@@ -541,11 +543,11 @@ before packages are loaded."
   ;;(spacemacs/toggle-highlight-current-line-globally-off)
   (push "magit: .*" spacemacs-useful-buffers-regexp)
 
- (setq initial-frame-alist
-      '((width . 300)  ;; width in characters
-        (height . 90)  ;; height in lines
-        (top . (/ (- (display-pixel-height) (* (frame-char-height) 90)) 2))  ;; center vertically
-        (left . (/ (- (display-pixel-width) (* (frame-char-width) 300)) 2)))) ;; center horizontally
+  (setq initial-frame-alist
+        '((width . 300)  ;; width in characters
+          (height . 90)  ;; height in lines
+          (top . (/ (- (display-pixel-height) (* (frame-char-height) 90)) 2))  ;; center vertically
+          (left . (/ (- (display-pixel-width) (* (frame-char-width) 300)) 2)))) ;; center horizontally
 
   ;; elisp/emacs infra
   (setq find-function-C-source-directory "/Users/mikerod/Projects/emacs-plus-basis/src")
@@ -558,6 +560,7 @@ before packages are loaded."
     (interactive)
     (other-window -1))
   (define-key evil-emacs-state-map (kbd "C-,") 'back-other-window)
+  (define-key evil-emacs-state-map (kbd "M-q") 'fill-paragraph)
 
   ;; ---------------
   ;; dired
