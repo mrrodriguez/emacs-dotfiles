@@ -253,7 +253,9 @@ It should only modify the values of Spacemacs settings."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(afternoon
+   dotspacemacs-themes '(solarized-selenized-light
+                         manoj-dark
+                         afternoon
                          modus-operandi
                          gruvbox
                          deeper-blue
@@ -434,6 +436,7 @@ It should only modify the values of Spacemacs settings."
    ;; (default nil)
    dotspacemacs-line-numbers '(:visual t
                                        :size-limit-kb 1000
+                                       ;;
                                        :disabled-for-modes
                                        dired-mode
                                        doc-view-mode
@@ -479,7 +482,8 @@ It should only modify the values of Spacemacs settings."
    ;; List of search tool executable names. Spacemacs uses the first installed
    ;; tool of the list. Supported tools are `rg', `ag', `pt', `ack' and `grep'.
    ;; (default '("rg" "ag" "pt" "ack" "grep"))
-   dotspacemacs-search-tools '("rg" "ag" "pt" "ack" "grep")
+   dotspacemacs-search-tools '("rg" "ag" ;; "pt"
+                               "ack" "grep")
 
    ;; Format specification for setting the frame title.
    ;; %a - the `abbreviated-file-name', or `buffer-name'
@@ -574,11 +578,15 @@ before packages are loaded."
   ;;   (run-at-time nil (* 5 60) 'recentf-save-list))
 
   ;; (setq helm-ff-file-name-history-use-recentf t)
-  (with-eval-after-load 'helm
+  (defun my/setup-helm ()
     (global-set-key (kbd "C-x b") 'helm-mini)
     (setq helm-mini-default-sources '(helm-source-buffers-list
                                       helm-source-recentf
                                       helm-source-buffer-not-found)))
+  (if (featurep 'helm)
+      (my/setup-helm)
+    (with-eval-after-load 'helm
+      (my/setup-helm)))
 
   ;; Update recentf when visiting files or changing buffers
   ;;(add-hook 'find-file-hook #'recentf-save-list)
@@ -586,13 +594,40 @@ before packages are loaded."
   ;;(add-hook 'kill-buffer-hook #'recentf-save-list)
   ;;(add-hook 'buffer-list-update-hook #'recentf-save-list)
 
+  ;; Styling (workarounds for solarized-selenized-light as of now)
+  (custom-set-faces
+   '(company-tooltip-selection
+     ((t (:background "#b58900" :foreground "#002b36" :weight bold))))
+   '(company-tooltip-common-selection
+     ((t (:inherit company-tooltip-selection :underline t))))
+   '(powerline-active1
+     ((t (:background "#d8d8d8" :foreground "#586e75")))) ; soft gray bg, readable fg
+   '(powerline-active2
+     ((t (:background "#eee8d5" :foreground "#586e75")))) ; lighter bg, same fg
+   '(spaceline-highlight-face
+     ((t (:background "#b58900" :foreground "#002b36" :weight bold)))) ; solarized yellow bg, dark fg
+   )
+
+  ;; Workaround for solarized-selenized-light clashing with rainbow-delimiters colors.
+  (defun my/setup-rainbow-delimiters-faces ()
+    (dolist (index (number-sequence 1 9))
+      (set-face-attribute
+       (intern (format "rainbow-delimiters-depth-%d-face" index))
+       nil :foreground nil :inherit 'default)))
+
+  ;; Run when rainbow-delimiters mode is activated (faces are guaranteed to exist)
+  (add-hook 'rainbow-delimiters-mode-hook #'my/setup-rainbow-delimiters-faces)
+
   ;; spacemacs
   ;;(spacemacs/toggle-highlight-current-line-globally-off)
   (push "magit: .*" spacemacs-useful-buffers-regexp)
   (push "\*Messages\*" spacemacs-useful-buffers-regexp)
 
+  (setq split-width-threshold 200)
+  (setq split-height-threshold nil)
+
   (setq initial-frame-alist
-        '((width . 300)  ;; width in characters
+        '((width . 200)  ;; width in characters
           (height . 90)  ;; height in lines
           (top . (/ (- (display-pixel-height) (* (frame-char-height) 90)) 2))  ;; center vertically
           (left . (/ (- (display-pixel-width) (* (frame-char-width) 300)) 2)))) ;; center horizontally
@@ -712,6 +747,37 @@ before packages are loaded."
     "Return a prompt string that mentions NAMESPACE."
     (format "%s> " namespace))
   (setq  cider-repl-prompt-function #'cider-repl-prompt-newline)
+
+  (defun cider-copy-qualified-symbol-at-point ()
+    "Copy the fully-qualified name of the Clojure symbol at point to the kill ring.
+  When called in a Clojure buffer connected to a CIDER REPL, this function
+  resolves the symbol at point to its fully-qualified form (e.g.,
+  'clojure.core/map' or 'my.namespace/my-function') and copies it to the
+  kill ring for easy pasting."
+    (interactive)
+    (if (not (cider-connected-p))
+        (message "Not connected to a CIDER REPL")
+      (let* ((symbol (cider-symbol-at-point 'look-back))
+             (var-info (when symbol (cider-var-info symbol))))
+        (if (not symbol)
+            (message "No symbol at point")
+          (if (not var-info)
+              ;; If we can't resolve it, just copy the symbol as-is
+              (progn
+                (kill-new symbol)
+                (message "Copied unresolved symbol: %s" symbol))
+            ;; Extract namespace and name from var-info
+            (let* ((ns (nrepl-dict-get var-info "ns"))
+                   (name (nrepl-dict-get var-info "name"))
+                   (qualified-name (if (and ns name)
+                                       (format "%s/%s" ns name)
+                                     symbol)))
+              (kill-new qualified-name)
+              (message "Copied: %s" qualified-name)))))))
+  ;; Key bindings for clojure-mode and cider-mode
+  (with-eval-after-load 'cider-mode
+    (spacemacs/set-leader-keys-for-major-mode 'clojure-mode
+      "e Y" 'cider-copy-qualified-symbol-at-point))
 
   ;; Clojure
   (defun clj-utils-sc-api-defsc (ep cp)
@@ -841,7 +907,7 @@ This function is called at the very end of Spacemacs initialization."
        ("XXX+" . "#dc752f")
        ("\\?\\?\\?+" . "#dc752f")))
    '(package-selected-packages
-     '(json-navigator hierarchy adoc-mode markup-faces easy-kill xterm-color shell-pop multi-term eshell-z eshell-prompt-extras esh-help yaml-mode web-mode tagedit sql-indent slim-mode scss-mode sass-mode pug-mode insert-shebang helm-css-scss haml-mode fish-mode emmet-mode eclim web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc coffee-mode zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue parseedn clojure-mode parseclj a smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup launchctl htmlize helm-gitignore gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md flyspell-correct-helm flyspell-correct evil-magit magit git-commit with-editor transient auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra lv hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))
+     '(cljstyle-format json-navigator adoc-mode markup-faces easy-kill xterm-color shell-pop multi-term eshell-z eshell-prompt-extras esh-help yaml-mode web-mode tagedit sql-indent slim-mode scss-mode sass-mode pug-mode insert-shebang helm-css-scss haml-mode fish-mode emmet-mode eclim web-beautify livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc coffee-mode zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider sesman queue parseedn clojure-mode parseclj a smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup launchctl htmlize helm-gitignore gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md flyspell-correct-helm flyspell-correct evil-magit magit git-commit with-editor transient auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra lv hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile projectile pkg-info epl helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))
    '(pdf-view-midnight-colors '("#b2b2b2" . "#292b2e"))
    '(safe-local-variable-values
      '((apheleia-formatter . cljstyle)
@@ -861,5 +927,22 @@ This function is called at the very end of Spacemacs initialization."
    ;; If you edit it by hand, you could mess it up, so be careful.
    ;; Your init file should contain only one such instance.
    ;; If there is more than one, they won't work right.
-   '(highlight-parentheses-highlight ((nil (:weight ultra-bold))) t))
+   '(company-tooltip-common-selection ((t (:inherit company-tooltip-selection :underline t))))
+   '(company-tooltip-selection ((t (:background "#b58900" :foreground "#002b36" :weight bold))))
+   '(highlight-parentheses-highlight ((nil (:weight ultra-bold))) t)
+   '(mode-line ((t (:background "#eee8d5" :foreground "#586e75" :box nil))))
+   '(mode-line-inactive ((t (:background "#fdf6e3" :foreground "#93a1a1" :box nil))))
+   '(powerline-active1 ((t (:background "#d8d8d8" :foreground "#586e75"))))
+   '(powerline-active2 ((t (:background "#eee8d5" :foreground "#586e75"))))
+   '(rainbow-delimiters-depth-1-face ((t (:foreground "#FF5555"))))
+   '(rainbow-delimiters-depth-2-face ((t (:foreground "#F1FA8C"))))
+   '(rainbow-delimiters-depth-3-face ((t (:foreground "#50FA7B"))))
+   '(rainbow-delimiters-depth-4-face ((t (:foreground "#BD93F9"))))
+   '(rainbow-delimiters-depth-5-face ((t (:foreground "#FF79C6"))))
+   '(rainbow-delimiters-depth-6-face ((t (:foreground "#8BE9FD"))))
+   '(rainbow-delimiters-depth-7-face ((t (:foreground "#FFB86C"))))
+   '(rainbow-delimiters-depth-8-face ((t (:foreground "#6272A4"))))
+   '(rainbow-delimiters-depth-9-face ((t nil)))
+   '(rainbow-delimiters-unmatched-face ((t (:foreground "#FF0000" :weight bold))))
+   '(spaceline-highlight-face ((t (:background "#b58900" :foreground "#002b36" :weight bold)))))
   )
