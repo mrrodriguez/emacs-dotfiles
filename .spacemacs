@@ -841,12 +841,27 @@ before packages are loaded."
           (let ((qualified-name (format "%s/%s" current-ns func-name)))
             (cider-find-var nil qualified-name))))))
 
+  (defun clojure-insert-kv-pair ()
+    "Insert :symbol symbol from symbol at point.
+  If symbol is already a keyword, strips the colon for the value."
+    (interactive)
+    (let* ((bounds (bounds-of-thing-at-point 'symbol))
+           (symbol (if bounds
+                       (buffer-substring-no-properties (car bounds) (cdr bounds))
+                     (read-string "Symbol: ")))
+           (is-keyword (string-prefix-p ":" symbol))
+           (base-symbol (if is-keyword (substring symbol 1) symbol))
+           (keyword (if is-keyword symbol (concat ":" symbol))))
+      (when bounds (delete-region (car bounds) (cdr bounds)))
+      (insert (format "%s %s" keyword base-symbol))))
+
   ;; Key bindings for clojure-mode and cider-mode
   (with-eval-after-load 'cider-mode
     (spacemacs/set-leader-keys-for-major-mode 'clojure-mode
       "e Y" 'cider-copy-qualified-symbol-at-point
       "e y" 'cider-copy-qualified-containing-function
-      "g f" 'cider-jump-to-containing-function))
+      "g f" 'cider-jump-to-containing-function
+      "i k" 'clojure-insert-kv-pair))
 
   ;; Clojure
   (defun clj-utils-sc-api-defsc (ep cp)
