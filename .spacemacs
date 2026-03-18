@@ -934,9 +934,9 @@ before packages are loaded."
     (direnv-mode))
 
   ;; Splash
-  (require 'splash)
-  (setq splash-stonehenge-dir "/Users/mrodriguez/Projects/splash/stonehenge")
-  (setq splash-website-dir "/Users/mrodriguez/Projects/splash/Website")
+  (when (require 'splash nil 'noerror)
+    (setq splash-stonehenge-dir "/Users/mrodriguez/Projects/splash/stonehenge")
+    (setq splash-website-dir "/Users/mrodriguez/Projects/splash/Website"))
 
   ;; Copy file paths to clipboard (mirrors <Leader>yp/yr/yR from astronvim)
   (defun my/copy-absolute-file-path ()
