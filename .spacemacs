@@ -934,9 +934,52 @@ before packages are loaded."
     (direnv-mode))
 
   ;; Splash
-  (require 'splash)
-  (setq splash-stonehenge-dir "/Users/mrodriguez/Projects/splash/stonehenge")
-  (setq splash-website-dir "/Users/mrodriguez/Projects/splash/Website")
+  (when (require 'splash nil 'noerror)
+    (setq splash-stonehenge-dir "/Users/mrodriguez/Projects/splash/stonehenge")
+    (setq splash-website-dir "/Users/mrodriguez/Projects/splash/Website"))
+
+  ;; Copy file paths to clipboard (mirrors <Leader>yp/yr/yR from astronvim)
+  (defun my/copy-absolute-file-path ()
+    "Copy absolute path of current buffer's file to clipboard."
+    (interactive)
+    (if buffer-file-name
+        (let ((path (expand-file-name buffer-file-name)))
+          (kill-new path)
+          (message "Copied: %s" path))
+      (message "Buffer has no file path")))
+
+  (defun my/copy-git-relative-file-path ()
+    "Copy git-relative path of current buffer's file to clipboard."
+    (interactive)
+    (if (not buffer-file-name)
+        (message "Buffer has no file path")
+      (let* ((path (expand-file-name buffer-file-name))
+             (git-root (string-trim (shell-command-to-string "git rev-parse --show-toplevel"))))
+        (if (string-match-p "^fatal" git-root)
+            (message "Not in a git repository")
+          (let ((rel-path (substring path (1+ (length git-root)))))
+            (kill-new rel-path)
+            (message "Copied (git-relative): %s" rel-path))))))
+
+  (defun my/copy-git-relative-file-path-with-root ()
+    "Copy git-relative path including root dir name of current buffer's file to clipboard."
+    (interactive)
+    (if (not buffer-file-name)
+        (message "Buffer has no file path")
+      (let* ((path (expand-file-name buffer-file-name))
+             (git-root (string-trim (shell-command-to-string "git rev-parse --show-toplevel"))))
+        (if (string-match-p "^fatal" git-root)
+            (message "Not in a git repository")
+          (let* ((root-name (file-name-nondirectory git-root))
+                 (rel-path (substring path (1+ (length git-root))))
+                 (path-with-root (concat root-name "/" rel-path)))
+            (kill-new path-with-root)
+            (message "Copied (with root): %s" path-with-root))))))
+
+  (spacemacs/set-leader-keys
+    "yp" 'my/copy-absolute-file-path
+    "yr" 'my/copy-git-relative-file-path
+    "yR" 'my/copy-git-relative-file-path-with-root)
 
   )
 
