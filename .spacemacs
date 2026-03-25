@@ -857,11 +857,12 @@ before packages are loaded."
 
   ;; Key bindings for clojure-mode and cider-mode
   (with-eval-after-load 'cider-mode
-    (spacemacs/set-leader-keys-for-major-mode 'clojure-mode
-      "e Y" 'cider-copy-qualified-symbol-at-point
-      "e y" 'cider-copy-qualified-containing-function
-      "g f" 'cider-jump-to-containing-function
-      "i k" 'clojure-insert-kv-pair))
+    (dolist (mode '(clojure-mode clojurec-mode clojurescript-mode))
+      (spacemacs/set-leader-keys-for-major-mode mode
+        "e Y" 'cider-copy-qualified-symbol-at-point
+        "e y" 'cider-copy-qualified-containing-function
+        "g f" 'cider-jump-to-containing-function
+        "i k" 'clojure-insert-kv-pair)))
 
   ;; Clojure
   (defun clj-utils-sc-api-defsc (ep cp)
