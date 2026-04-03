@@ -857,11 +857,12 @@ before packages are loaded."
 
   ;; Key bindings for clojure-mode and cider-mode
   (with-eval-after-load 'cider-mode
-    (spacemacs/set-leader-keys-for-major-mode 'clojure-mode
-      "e Y" 'cider-copy-qualified-symbol-at-point
-      "e y" 'cider-copy-qualified-containing-function
-      "g f" 'cider-jump-to-containing-function
-      "i k" 'clojure-insert-kv-pair))
+    (dolist (mode '(clojure-mode clojurec-mode clojurescript-mode))
+      (spacemacs/set-leader-keys-for-major-mode mode
+        "e Y" 'cider-copy-qualified-symbol-at-point
+        "e y" 'cider-copy-qualified-containing-function
+        "g f" 'cider-jump-to-containing-function
+        "i k" 'clojure-insert-kv-pair)))
 
   ;; Clojure
   (defun clj-utils-sc-api-defsc (ep cp)
@@ -879,11 +880,24 @@ before packages are loaded."
   (define-key evil-emacs-state-map (kbd "C-x scd") 'clj-utils-sc-api-defsc)
 
   (use-package clojure-mode
-    :hook ((clojure-mode . cljstyle-format-on-save-mode)))
+    :hook ((clojure-mode . cljstyle-format-on-save-mode)
+           (clojurec-mode . cljstyle-format-on-save-mode)))
 
   (use-package cljstyle-format
     :ensure t
     :after clojure-mode)
+
+  (defun my/clj-reload-on-save ()
+    "After saving a Clojure file, trigger transitive namespace reload via clj-reload.
+cljstyle runs in before-save-hook so formatting always precedes this.
+Never blocks or fails the save — nREPL errors appear in *cider-result*."
+    (when (and (derived-mode-p 'clojure-mode)
+               (cider-connected-p))
+      (condition-case err
+          (cider-interactive-eval "(user/reload-nses)")
+        (error (message "clj-reload: %s" (error-message-string err))))))
+
+  (add-hook 'after-save-hook #'my/clj-reload-on-save)
 
   ;; https://github.com/justbur/emacs-which-key/issues/130
   (setq which-key-idle-secondary-delay 0.05)
