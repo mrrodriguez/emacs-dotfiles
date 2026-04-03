@@ -890,11 +890,15 @@ before packages are loaded."
   (defun my/clj-reload-on-save ()
     "After saving a Clojure file, trigger transitive namespace reload via clj-reload.
 cljstyle runs in before-save-hook so formatting always precedes this.
-Never blocks or fails the save — nREPL errors appear in *cider-result*."
+Never blocks or fails the save. Errors go to *Messages* only — no popups."
     (when (and (derived-mode-p 'clojure-mode)
                (cider-connected-p))
       (condition-case err
-          (cider-interactive-eval "(user/reload-nses)")
+          (cider-nrepl-request:eval
+           "(user/reload-nses)"
+           (lambda (response)
+             (nrepl-dbind-response response (err status)
+               (when err (message "clj-reload: %s" err)))))
         (error (message "clj-reload: %s" (error-message-string err))))))
 
   (add-hook 'after-save-hook #'my/clj-reload-on-save)
