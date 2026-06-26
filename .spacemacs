@@ -864,6 +864,15 @@ before packages are loaded."
         "g f" 'cider-jump-to-containing-function
         "i k" 'clojure-insert-kv-pair)))
 
+  ;; Configure Projectile test suffix for Clojure buffers.
+  ;; This ensures projectile-toggle-between-implementation-and-test works
+  ;; in monorepos/subdirectories where the project root is generic.
+  (defun my/clojure-projectile-setup ()
+    (setq-local projectile-project-test-suffix "_test"))
+
+  (dolist (hook '(clojure-mode-hook clojurescript-mode-hook clojurec-mode-hook))
+    (add-hook hook #'my/clojure-projectile-setup))
+
   ;; Clojure
   (defun clj-utils-sc-api-defsc (ep cp)
     "(sc.api/defsc [ep cp])"
@@ -1038,7 +1047,7 @@ This function is called at the very end of Spacemacs initialization."
    '(ansi-color-faces-vector
      [default bold shadow italic underline bold bold-italic bold])
    '(ansi-color-names-vector
-     ["#ece3cc" "#d2212d" "#489100" "#ad8900" "#0072d4" "#ca4898" "#009c8f" "#fbf3db"])
+     ["#d2ceda" "#f2241f" "#67b11d" "#b1951d" "#3a81c3" "#a31db1" "#21b8c7" "#655370"])
    '(evil-want-Y-yank-to-eol nil)
    '(hl-todo-keyword-faces
      '(("TODO" . "#dc752f")
