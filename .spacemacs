@@ -865,6 +865,12 @@ before packages are loaded."
         "g f" 'cider-jump-to-containing-function
         "i k" 'clojure-insert-kv-pair)))
 
+  (with-eval-after-load 'clara-explorer
+    (dolist (mode '(clojure-mode clojurec-mode clojurescript-mode))
+      (spacemacs/set-leader-keys-for-major-mode mode
+        "g p" 'clara-explorer-navigate-producer
+        "g c" 'clara-explorer-navigate-consumer)))
+
   ;; Configure Projectile test suffix for Clojure buffers.
   ;; This ensures projectile-toggle-between-implementation-and-test works
   ;; in monorepos/subdirectories where the project root is generic.
