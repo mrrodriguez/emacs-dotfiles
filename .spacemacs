@@ -866,10 +866,11 @@ before packages are loaded."
         "i k" 'clojure-insert-kv-pair)))
 
   (with-eval-after-load 'clara-explorer
-    (dolist (mode '(clojure-mode clojurec-mode clojurescript-mode))
-      (spacemacs/set-leader-keys-for-major-mode mode
-        "g p" 'clara-explorer-navigate-producer
-        "g c" 'clara-explorer-navigate-consumer)))
+    (with-eval-after-load 'clojure-mode
+      (dolist (map '(clojure-mode-map clojurec-mode-map clojurescript-mode-map))
+        (eval `(evil-define-key 'normal ,map
+                 "gp" 'clara-explorer-navigate-producer
+                 "gc" 'clara-explorer-navigate-consumer)))))
 
   ;; Configure Projectile test suffix for Clojure buffers.
   ;; This ensures projectile-toggle-between-implementation-and-test works
